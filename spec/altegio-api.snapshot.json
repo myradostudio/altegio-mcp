@@ -1,0 +1,878 @@
+{
+  "documents": {
+    "online-booking": {
+      "source": "https://developer.alteg.io/_bundle/en/public/openapi.json",
+      "title": "Online Booking",
+      "version": "1.0.0",
+      "server": "https://api.alteg.io/api/v1",
+      "securitySchemes": [
+        "BearerPartner",
+        "BearerPartnerUser"
+      ]
+    },
+    "business-v1": {
+      "source": "https://developer.alteg.io/_bundle/en/b2b-v1/openapi.json",
+      "title": "Business Management",
+      "version": "1.0.0",
+      "server": "https://api.alteg.io/api/v1",
+      "securitySchemes": [
+        "BearerPartner",
+        "BearerPartnerUser",
+        "bearer",
+        "user"
+      ]
+    }
+  },
+  "operations": {
+    "DELETE /user/records/{record_id}/{record_hash}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "record_hash",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "record_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_dates/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "date",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "date_from",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "date_to",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "service_ids[]",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "staff_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_record/{location_id}/{record_id}/{record_hash}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "record_hash",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "record_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_services/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "datetime",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "service_ids[]",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        },
+        {
+          "name": "staff_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "without_seances",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_staff_seances/{location_id}/{team_member_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "team_member_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "datetime",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "service_ids[]",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_staff/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "datetime",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "service_ids[]",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /book_times/{location_id}/{team_member_id}/{date}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "date",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "team_member_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "exclude_record_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "service_ids[]",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /bookform/{id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "GET /locations/{location_id}": {
+      "document": "business-v1",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "bookform_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "forBooking",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "my",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "show_groups",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "showBookforms",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "200"
+      ]
+    },
+    "POST /book_check/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "201"
+      ],
+      "requestBody": {
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/book_check_companyid_request_data_types"
+        }
+      }
+    },
+    "POST /book_code/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "201"
+      ],
+      "requestBody": {
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/book_code_companyid_data_types_request"
+        }
+      }
+    },
+    "POST /book_record/{location_id}": {
+      "document": "online-booking",
+      "security": [
+        "BearerPartner"
+      ],
+      "parameters": [
+        {
+          "name": "Accept",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Authorization",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "Content-Type",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "location_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "successStatuses": [
+        "201"
+      ],
+      "requestBody": {
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/book_record_companyid_request_data_types"
+        }
+      }
+    }
+  },
+  "schemas": {
+    "online-booking": {
+      "book_check_companyid_request_data_types": {
+        "properties": {
+          "appointments": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "appointments"
+        ],
+        "type": "object"
+      },
+      "book_code_companyid_data_types_request": {
+        "properties": {
+          "fulname": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "book_record_companyid_request_data_types": {
+        "properties": {
+          "api_id": {
+            "type": "number"
+          },
+          "appointments": {
+            "items": {
+              "properties": {
+                "custom_fields": {
+                  "properties": {
+                    "my_custom_field": {
+                      "type": "number"
+                    },
+                    "some_another_field": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "datetime": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "id": {
+                  "type": "number"
+                },
+                "services": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "staff_id": {
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "code": {
+            "type": "number"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullname": {
+            "type": "string"
+          },
+          "national_id": {
+            "type": "string"
+          },
+          "notify_by_email": {
+            "type": "number"
+          },
+          "notify_by_sms": {
+            "type": "number"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fullname",
+          "phone"
+        ],
+        "type": "object"
+      }
+    },
+    "business-v1": {}
+  }
+}
