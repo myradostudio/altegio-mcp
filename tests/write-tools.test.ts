@@ -169,6 +169,48 @@ describe('create_booking', () => {
     });
   }
 
+  it('does not put "wait and retry" next to "do not repeat the call"', async () => {
+    harness = await createHarness({ allowWrite: true });
+    harness.api.on('POST', CREATE, refusal(429, 'Too many requests'));
+
+    const result = await harness.call('create_booking', BOOKING);
+
+    assert.match(result.text, /^Altegio API error \(HTTP 429\): Too many requests\nIt is unknown whether/);
+    assert.doesNotMatch(result.text, /Wait before retrying/);
+  });
+
+  it('does not send the model to the free slots when the booking was for any team member', async () => {
+    harness = await createHarness({ allowWrite: true });
+    harness.api.on('POST', CREATE, json({ message: 'Bad gateway' }, 502));
+
+    const result = await harness.call('create_booking', { ...BOOKING, staff_id: 0 });
+
+    assert.match(result.text, /It is unknown whether Altegio carried out the operation/);
+    assert.match(result.text, /asked for any team member, so the list of free slots cannot show whether it was made/);
+    assert.doesNotMatch(result.text, /Call list_time_slots/);
+    assert.match(result.text, /book again only after it confirms that there is no booking/);
+  });
+
+  it('says that a slot still on offer proves nothing', async () => {
+    harness = await createHarness({ allowWrite: true });
+    harness.api.on('POST', CREATE, json({ message: 'Bad gateway' }, 502));
+
+    const result = await harness.call('create_booking', BOOKING);
+
+    assert.match(result.text, /If it is still offered, the booking may nevertheless exist or still be on its way/);
+  });
+
+  it('treats success: false under a success status as a refusal, not as an unknown outcome', async () => {
+    harness = await createHarness({ allowWrite: true });
+    harness.api.on('POST', CREATE, refusal(201, 'The client is blacklisted'));
+
+    const result = await harness.call('create_booking', BOOKING);
+
+    assert.equal(result.isError, true);
+    assert.match(result.text, /^Altegio API error \(HTTP 201\): The client is blacklisted$/);
+    assert.doesNotMatch(result.text, /It is unknown whether/);
+  });
+
   it('says the outcome is unknown after a timeout', async () => {
     const config = testConfig({ allowWrite: true, timeoutMs: 30 });
     const client = new AltegioClient({ config, fetch: (_url, init) => hang(init) });

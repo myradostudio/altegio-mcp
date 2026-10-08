@@ -31,7 +31,7 @@ function instructions(config: Config): string {
     'Ids are numbers. Durations (seance_length, sum_length) are in seconds. Prices are in the currency of the location. Slot times are local to the location; get_location returns its time zone.',
     config.locationId === undefined
       ? 'No location is preset: pass location_id to every tool that takes it.'
-      : `The server is bound to location ${config.locationId}: location_id can be omitted and no other location is accepted.`,
+      : `The server is bound to location ${config.locationId}: location_id can be omitted and no other location is accepted. The one tool outside this rule is cancel_booking, which Altegio addresses by booking id and hash alone.`,
     config.allowWrite ? WRITE_MODE : READ_ONLY_MODE,
   ].join('\n');
 }

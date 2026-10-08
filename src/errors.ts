@@ -75,13 +75,17 @@ const STATUS_HINTS: Readonly<Record<number, string>> = {
   429: 'Rate limit reached: Altegio allows 200 requests per minute and 5 per second from one IP address. Wait before retrying.',
 };
 
-export function describeError(error: unknown): string {
+/**
+ * @param hints false leaves out the advice for the status. A write whose outcome is unknown adds its own advice,
+ *   and "wait before retrying" next to "do not repeat the call" would contradict it.
+ */
+export function describeError(error: unknown, { hints = true }: { hints?: boolean } = {}): string {
   if (error instanceof AltegioApiError) {
     const lines = [`Altegio API error (HTTP ${error.status}): ${error.message}`];
     for (const detail of error.details) {
       lines.push(detail.code === undefined ? `  - ${detail.message}` : `  - code ${detail.code}: ${detail.message}`);
     }
-    const hint = STATUS_HINTS[error.status];
+    const hint = hints ? STATUS_HINTS[error.status] : undefined;
     if (hint !== undefined) lines.push(hint);
     return lines.join('\n');
   }

@@ -32,6 +32,7 @@ describe('server metadata', () => {
     assert.match(instructions, /Unofficial/);
     assert.match(instructions, /in seconds/);
     assert.match(instructions, /bound to location 4564/);
+    assert.match(instructions, /The one tool outside this rule is cancel_booking/);
     assert.match(instructions, /read-only mode/);
     assert.doesNotMatch(instructions, /Write tools are enabled/);
   });
@@ -109,6 +110,7 @@ describe('annotations', () => {
     const api = new FakeApi();
     api.on('GET', /.*/, ok({}));
     api.on('GET', /book_staff\/|book_times\//, ok([]));
+    api.on('GET', /bookform\//, ok({ company_id: IDS.location }));
     api.on('POST', /.*/, ok(null, 201));
     harness = await createHarness({}, api);
     const sampleArguments: Record<string, Record<string, unknown>> = {
@@ -130,6 +132,38 @@ describe('annotations', () => {
       notGet.map((request) => `${request.method} ${request.url.pathname}`),
       ['POST /api/v1/book_check/4564'],
     );
+  });
+});
+
+describe('binding to one location', () => {
+  it('holds for every tool that takes a location, and cancel_booking is the only tool without one', async () => {
+    harness = await createHarness({ allowWrite: true });
+    const { tools } = await harness.mcp.listTools();
+    const takesLocation = tools.filter((tool) => 'location_id' in (tool.inputSchema.properties ?? {})).map((tool) => tool.name);
+    const sample: Record<string, unknown> = {
+      staff_id: IDS.staff,
+      date: '2026-10-12',
+      datetime: SLOT,
+      service_ids: [IDS.haircut],
+      record_id: IDS.record,
+      record_hash: RECORD_HASH,
+      client_name: 'Ірина Тестова',
+      client_phone: '+380501234567',
+    };
+
+    for (const tool of tools.filter((candidate) => takesLocation.includes(candidate.name))) {
+      // Only the arguments the tool knows, plus a location other than the bound one.
+      const known = Object.keys(tool.inputSchema.properties ?? {});
+      const args = Object.fromEntries(Object.entries(sample).filter(([name]) => known.includes(name)));
+      const result = await harness.call(tool.name, { ...args, location_id: IDS.otherLocation });
+      assert.equal(result.isError, true, tool.name);
+      assert.match(result.text, /bound to location 4564 \(ALTEGIO_LOCATION_ID\) and does not work with location 9001/, tool.name);
+    }
+
+    assert.equal(harness.api.requests.length, 0, 'nothing is sent for another location');
+    assert.equal(takesLocation.length, 10);
+    // get_booking_form is asked by form id and checks the location of the answer (tests/read-tools.test.ts).
+    assert.deepEqual(tools.map((tool) => tool.name).filter((name) => !takesLocation.includes(name)), ['get_booking_form', 'cancel_booking']);
   });
 });
 

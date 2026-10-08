@@ -101,6 +101,11 @@ function parsePartnerToken(raw: string | undefined, problems: string[], notices:
     problems.push(
       'ALTEGIO_PARTNER_TOKEN must be the partner token alone, without spaces or commas. A user token ("…, User …") is not supported by this server.',
     );
+  } else if (!/^[\x21-\x7e]+$/.test(token)) {
+    // A header value cannot carry anything else: every request would fail inside fetch before it is sent.
+    problems.push(
+      'ALTEGIO_PARTNER_TOKEN contains a character that is not a plain Latin letter, digit or sign (a curly quote or an invisible space, often picked up when copying from a document). Copy the token again.',
+    );
   }
   return token;
 }

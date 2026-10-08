@@ -6,6 +6,7 @@ import { AltegioClient } from '../../src/client.js';
 import type { Config } from '../../src/config.js';
 import { createServer } from '../../src/server.js';
 import { FakeApi } from './fake-api.js';
+import { assertMatchesSpec } from './spec.js';
 
 export const PARTNER_TOKEN = 'test-partner-token-0123456789';
 export const LOCATION_ID = 4564;
@@ -40,8 +41,9 @@ export interface Harness {
 
 export async function createHarness(overrides: Partial<Config> = {}, api = new FakeApi()): Promise<Harness> {
   const config = testConfig(overrides);
-  // The pacing of requests is tested on its own; here the clock never advances and nothing waits.
-  const client = new AltegioClient({ config, fetch: api.fetch, sleep: async () => undefined });
+  // The pacing of requests is tested on its own; here every request finds the limits fresh.
+  let clock = 0;
+  const client = new AltegioClient({ config, fetch: api.fetch, now: () => (clock += 60_000), sleep: async () => undefined });
   const server = createServer({ config, client });
   const mcp = new Client({ name: 'test-harness', version: '1.0.0' });
 
@@ -73,6 +75,8 @@ export async function createHarness(overrides: Partial<Config> = {}, api = new F
     close: async () => {
       await mcp.close();
       await server.close();
+      // Every request of every test is held against the OpenAPI snapshot, whether or not the test looked at it.
+      for (const request of api.requests) assertMatchesSpec(request);
     },
   };
 }

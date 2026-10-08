@@ -76,15 +76,22 @@ export const readTools: readonly AnyTool[] = [
     name: 'get_booking_form',
     title: 'Get a booking form',
     description:
-      'Returns the settings of an online booking form (widget) by its id: the location it belongs to (location_id), the chain id for a chain form (group_id, 0 otherwise), whether the client phone must be confirmed by SMS and whether a comment is required. The form id is the number in the widget address, for example 123 in https://b123.alteg.io. Use it to turn a widget link into a location id.',
+      'Returns the settings of an online booking form (widget) by its id (on a server bound to one location, only a form of that location): the location it belongs to (location_id), the chain id for a chain form (group_id, 0 otherwise), whether the client phone must be confirmed by SMS and whether a comment is required. The form id is the number in the widget address, for example 123 in https://b123.alteg.io. Use it to turn a widget link into a location id.',
     access: 'read',
     inputSchema: z.strictObject({
       form_id: z.number().int().min(1).describe('Booking form id: the number in the widget address https://b<id>.alteg.io.'),
     }),
     annotations: READ_ONLY,
-    handler: async (args, { client }) => {
+    handler: async (args, { client, config }) => {
       const data = unwrap(await client.request(ENDPOINTS.bookingForm, { pathParams: { id: args.form_id } }));
-      return { data: summarizeBookingForm(expectObject(data, 'a booking form')) };
+      const form = expectObject(data, 'a booking form');
+      // The form is asked for by its own id, so the binding to one location is applied to the answer.
+      if (config.locationId !== undefined && form['company_id'] !== config.locationId) {
+        throw new ToolError(
+          `This server is bound to location ${config.locationId} (ALTEGIO_LOCATION_ID), and booking form ${args.form_id} belongs to another location.`,
+        );
+      }
+      return { data: summarizeBookingForm(form) };
     },
   }),
 
@@ -310,7 +317,13 @@ export const readTools: readonly AnyTool[] = [
             error.details.length > 0
               ? error.details.map((detail) => ({ code: detail.code ?? null, message: detail.message }))
               : [{ code: null, message: error.message }];
-          return { data: { can_be_booked: false, reasons } };
+          return {
+            // Altegio documents 404 here for two different things, and only one of them is about the slot.
+            ...(error.status === 404
+              ? { note: 'Altegio answered HTTP 404: either the team member does not provide this service, or the location, team member or service id is wrong. Check the ids before telling the client that the time is unavailable.' }
+              : {}),
+            data: { can_be_booked: false, reasons },
+          };
         }
         throw error;
       }

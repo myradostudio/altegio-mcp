@@ -47,7 +47,8 @@ export const date = (what: string) =>
     .refine(isRealDate, 'Not a valid calendar date.')
     .describe(`${what} Format YYYY-MM-DD, e.g. 2026-10-12.`);
 
-const DATE_TIME_PREFIX = String.raw`\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?`;
+// Hours 00–23 and minutes 00–59 are spelled out: Date.parse takes "T24:00" and turns 30 February into 2 March.
+const DATE_TIME_PREFIX = String.raw`\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d(:[0-5]\d(\.\d+)?)?`;
 const OFFSET = String.raw`(Z|[+-]\d{2}:\d{2})`;
 const FILTER_DATE_TIME_PATTERN = new RegExp(`^${DATE_TIME_PREFIX}${OFFSET}?$`);
 const SLOT_DATE_TIME_PATTERN = new RegExp(`^${DATE_TIME_PREFIX}${OFFSET}$`);
@@ -70,7 +71,7 @@ export const slotDateTime = z
     SLOT_DATE_TIME_PATTERN,
     'Must be an ISO 8601 date-time with a UTC offset, exactly as a slot returns it, e.g. 2026-10-12T15:30:00.000+03:00.',
   )
-  .refine((value) => !Number.isNaN(Date.parse(value)), 'Not a valid date-time.')
+  .refine((value) => isRealDate(value.slice(0, 10)) && !Number.isNaN(Date.parse(value)), 'Not a valid date-time.')
   .describe(
     'Start of the visit: the `datetime` value of a slot from list_time_slots or get_nearest_time_slots, passed on unchanged (ISO 8601 with a UTC offset).',
   );

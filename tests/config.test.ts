@@ -67,6 +67,17 @@ describe('loadConfig', () => {
     }
   });
 
+  it('rejects a token with characters a header cannot carry, picked up when copying from a document', () => {
+    for (const value of [`\u201c${TOKEN}\u201d`, `${TOKEN}\u200b`, `${TOKEN.slice(0, 5)}\u00a0${TOKEN.slice(5)}`, 'токен']) {
+      const problems = problemsOf({ ALTEGIO_PARTNER_TOKEN: value });
+      assert.equal(problems.length, 1, JSON.stringify(value));
+      assert.match(problems[0] ?? '', /Copy the token again|without spaces or commas/);
+      assert.ok(!problems.join('\n').includes(TOKEN), 'a problem never repeats the token');
+    }
+    // A no-break space at either end is trimmed like any other blank; only inside the value is it a mistake.
+    assert.equal(loadConfig({ ALTEGIO_PARTNER_TOKEN: `${TOKEN}\u00a0` }).partnerToken, TOKEN);
+  });
+
   it('rejects a location id that is not a positive integer', () => {
     for (const value of ['0', '-5', '12.5', 'abc', '4564x', '0123']) {
       assert.match(

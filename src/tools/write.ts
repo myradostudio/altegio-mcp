@@ -37,18 +37,16 @@ const phone = z
 
 /**
  * True when the failure proves that Altegio did not carry out the operation:
- * the request was never sent, or the API refused it with a client error.
- * 408 and 429 are left out on purpose: they say nothing about what happened.
+ * the request was never sent, the API refused it with a client error, or it
+ * answered `success: false` under a success status (the client turns that into
+ * an error too). 408 and 429 are left out on purpose: they say nothing about
+ * what happened.
  */
 function isDefiniteRefusal(error: unknown): boolean {
   if (error instanceof RateLimitError || error instanceof ToolError) return true;
-  return (
-    error instanceof AltegioApiError &&
-    error.status >= 400 &&
-    error.status < 500 &&
-    error.status !== 408 &&
-    error.status !== 429
-  );
+  if (!(error instanceof AltegioApiError)) return false;
+  if (error.status >= 200 && error.status < 300) return true;
+  return error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429;
 }
 
 /**
@@ -63,7 +61,7 @@ async function submit(client: AltegioClient, endpoint: Endpoint, options: Reques
   } catch (error) {
     if (isDefiniteRefusal(error)) throw error;
     throw new ToolError(
-      `${describeError(error)}
+      `${describeError(error, { hints: false })}
 It is unknown whether Altegio carried out the operation. Do not simply repeat the call. ${recovery}`,
     );
   }
@@ -130,7 +128,10 @@ export const writeTools: readonly AnyTool[] = [
         client,
         ENDPOINTS.createBooking,
         { pathParams: { location_id: location }, body },
-        `Call list_time_slots for team member ${args.staff_id} on ${args.datetime.slice(0, 10)}: if the slot ${args.datetime} is no longer offered, the booking was most likely created. Ask the business to check its Altegio schedule before booking again.`,
+        args.staff_id === 0
+          ? // With "any team member" the booking may sit with one person while another still offers the same time.
+            'The booking was asked for any team member, so the list of free slots cannot show whether it was made. Ask the business to check its Altegio schedule, and book again only after it confirms that there is no booking.'
+          : `Call list_time_slots for team member ${args.staff_id} on ${args.datetime.slice(0, 10)}: if the slot ${args.datetime} is no longer offered, the booking was most likely created. If it is still offered, the booking may nevertheless exist or still be on its way. Either way, ask the business to check its Altegio schedule, and book again only after it confirms that there is no booking.`,
       );
 
       const [created] = objects(unwrap(response));

@@ -124,6 +124,28 @@ describe('get_booking_form', () => {
   });
 });
 
+describe('get_booking_form on a bound server', () => {
+  it('returns a form of the bound location', async () => {
+    harness = await createHarness();
+    harness.api.on('GET', '/api/v1/bookform/123', ok(fixtures.bookingForm));
+
+    const result = await harness.callJson('get_booking_form', { form_id: IDS.form });
+
+    assert.equal(result.location_id, IDS.location);
+  });
+
+  it('refuses a form that belongs to another location, so the binding cannot be walked around', async () => {
+    harness = await createHarness();
+    harness.api.on('GET', '/api/v1/bookform/777', ok({ ...fixtures.bookingForm, id: 777, company_id: IDS.otherLocation }));
+
+    const result = await harness.call('get_booking_form', { form_id: 777 });
+
+    assert.equal(result.isError, true);
+    assert.equal(result.text, 'This server is bound to location 4564 (ALTEGIO_LOCATION_ID), and booking form 777 belongs to another location.');
+    assert.ok(!result.text.includes(String(IDS.otherLocation)), 'the other location is not named');
+  });
+});
+
 describe('list_services', () => {
   it('lists services and categories in compact form', async () => {
     harness = await createHarness();
@@ -453,9 +475,12 @@ describe('check_booking', () => {
     harness = await createHarness();
     harness.api.on('POST', '/api/v1/book_check/4564', refusal(404, "The team member doesn't provide the selected service"));
 
-    const result = await harness.callJson('check_booking', args);
+    const result = await harness.call('check_booking', args);
 
-    assert.deepEqual(result, {
+    assert.equal(result.isError, false);
+    // 404 is documented for a wrong id as well, so the answer says that it may not be about the slot at all.
+    assert.match(result.text, /^Altegio answered HTTP 404: either the team member does not provide this service, or the location, team member or service id is wrong\./);
+    assert.deepEqual(JSON.parse(result.text.slice(result.text.indexOf('{'))), {
       can_be_booked: false,
       reasons: [{ code: null, message: "The team member doesn't provide the selected service" }],
     });
@@ -478,6 +503,18 @@ describe('check_booking', () => {
 
     assert.equal(result.isError, true);
     assert.match(result.text, /UTC offset/);
+    assert.equal(harness.api.requests.length, 0);
+  });
+
+  it('rejects a moment that does not exist instead of letting it roll over to another day', async () => {
+    harness = await createHarness();
+
+    for (const datetime of ['2026-02-30T15:30:00+02:00', '2026-10-12T24:00:00+03:00', '2026-10-12T15:60:00+03:00', '2026-13-01T10:00:00+03:00']) {
+      const result = await harness.call('check_booking', { ...args, datetime });
+      assert.equal(result.isError, true, datetime);
+    }
+    const filter = await harness.call('list_staff', { datetime: '2026-10-12T99:99' });
+    assert.equal(filter.isError, true);
     assert.equal(harness.api.requests.length, 0);
   });
 });

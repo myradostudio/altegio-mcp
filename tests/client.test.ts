@@ -165,6 +165,20 @@ describe('failures', () => {
     assert.match(text, /code 403: Bearer \[redacted\]/);
   });
 
+  it('cleans the whole answer of the token before anything is cut or parsed', async () => {
+    const { api, client } = setup();
+    // The token starts inside the first 500 characters of the detail and ends after them.
+    api.on('POST', /.*/, refusal(422, 'Refused', [{ code: 433, message: `${'x'.repeat(490)}${PARTNER_TOKEN} tail` }]));
+    api.on('GET', /.*/, ok({ title: `echo ${PARTNER_TOKEN}` }));
+
+    const error = await client.request(ENDPOINTS.checkBooking, { ...services, body: {} }).catch((e: unknown) => e);
+    const data = await client.request(ENDPOINTS.location, services);
+
+    assert.ok(error instanceof AltegioApiError);
+    assert.ok(!describeError(error).includes(PARTNER_TOKEN.slice(0, 8)), 'not even the beginning of the token survives the cut');
+    assert.deepEqual(data, { success: true, data: { title: 'echo [redacted]' }, meta: [] });
+  });
+
   it('does not follow a redirect and says what to check', async () => {
     const { api, client } = setup();
     api.on('GET', /.*/, new Response(null, { status: 302, headers: { location: 'https://elsewhere.example/' } }));
@@ -271,6 +285,28 @@ describe('request pacing', () => {
     advance(18_000);
     await client.request(ENDPOINTS.services, services);
     assert.equal(api.requests.length, 201);
+  });
+
+  it('keeps both limits over a long run: never more than 5 in a second or 200 in a minute', () => {
+    let now = 0;
+    const limiter = new RateLimiter(RATE_WINDOWS, () => now);
+    const sent: number[] = [];
+
+    for (let i = 0; i < 650; i += 1) {
+      const slot = limiter.reserve(Number.POSITIVE_INFINITY);
+      assert.equal(slot.granted, true);
+      now += slot.waitMs; // the caller waits for its slot…
+      sent.push(now);
+      now += 3; // …and the request takes a moment
+    }
+
+    const within = (index: number, ms: number) => sent.filter((at) => at > (sent[index] ?? 0) - ms && at <= (sent[index] ?? 0)).length;
+    for (let i = 0; i < sent.length; i += 1) {
+      assert.ok(within(i, 1_000) <= 5, `request ${i}: ${within(i, 1_000)} in one second`);
+      assert.ok(within(i, 60_000) <= 200, `request ${i}: ${within(i, 60_000)} in one minute`);
+    }
+    // 650 requests need more than three full minutes at 200 per minute.
+    assert.ok((sent.at(-1) ?? 0) >= 180_000);
   });
 
   it('hands concurrent callers different slots', () => {
