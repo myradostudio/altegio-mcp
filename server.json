@@ -1,0 +1,53 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.myradostudio/altegio",
+  "title": "Altegio online booking (unofficial)",
+  "description": "Unofficial server for Altegio online booking: services, team members, free slots, bookings.",
+  "repository": {
+    "url": "https://github.com/myradostudio/altegio-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://myradostudio.com/en/mcp-server-development/",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@myradostudio/altegio-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ALTEGIO_PARTNER_TOKEN",
+          "description": "Partner token from the Altegio developer account (Account settings, Account details).",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "ALTEGIO_LOCATION_ID",
+          "description": "Numeric id of the location to work with. When set, the tools accept no other location.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "ALTEGIO_API_URL",
+          "description": "Origin of the Altegio API. Change it only if Altegio gave you a different host.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "https://api.alteg.io"
+        },
+        {
+          "name": "ALTEGIO_ALLOW_WRITE",
+          "description": "Set to true to register the write tools (create and cancel bookings, send SMS confirmation codes). Off by default.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "boolean",
+          "default": "false"
+        }
+      ]
+    }
+  ]
+}
