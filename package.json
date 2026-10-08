@@ -1,0 +1,64 @@
+{
+  "name": "@myradostudio/altegio-mcp",
+  "version": "0.1.0",
+  "description": "Unofficial MCP server for the Altegio online booking API: services, team members, free time slots and, on opt-in, creating and cancelling bookings.",
+  "mcpName": "com.myradostudio/altegio",
+  "type": "module",
+  "bin": {
+    "altegio-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "server.json",
+    "README.md",
+    "README.uk.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "pretest": "npm run build && tsc -p tsconfig.test.json",
+    "test": "node scripts/run-tests.mjs",
+    "spec:update": "npm run build && node scripts/update-spec-snapshot.mjs",
+    "prepublishOnly": "npm run lint && npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "altegio",
+    "online-booking",
+    "appointments",
+    "scheduling",
+    "salon",
+    "ukraine"
+  ],
+  "author": "Myrado Studio <hello@myradostudio.com>",
+  "license": "MIT",
+  "homepage": "https://myradostudio.com/en/mcp-server-development/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myradostudio/altegio-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/myradostudio/altegio-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "^20.19.43",
+    "typescript": "^7.0.2"
+  }
+}
