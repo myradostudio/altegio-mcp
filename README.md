@@ -146,7 +146,7 @@ Two things the server cannot do for you. First, whatever a tool returns is sent 
 
 ## Limitations
 
-- **Not verified on a live account.** Requests are checked against the OpenAPI documents, which describe shapes, not behaviour. Response handling and error texts are implemented from the documentation and its examples. In particular, nobody has confirmed yet which locations answer to a given partner token, or how a location that disabled online booking responds.
+- **Not verified on a live account.** Requests are checked against the OpenAPI documents, which describe shapes, not behaviour. Response handling and error texts are implemented from the documentation and its examples. In particular, nobody has confirmed yet which locations answer to a given partner token, or how a location that disabled online booking responds. The [live check](#live-check) is there to find out; it has not been run on a real account yet.
 - **Partner token only.** Everything that needs a user token is out of scope: listing or searching the bookings of a location, the client base, moving a booking to another time (`PUT /book_record`), the schedule, sales and finances.
 - **`check_booking` and HTTP 404.** Altegio documents 404 both for "the team member does not provide this service" and for a location that is not found. The tool reports it as "cannot be booked" and adds that the ids may be wrong.
 - **`cancel_booking` depends on the location.** Altegio documents the hash as meant for deleting a booking right after it was made, and a location can forbid clients to cancel (`allow_delete_record`). Expect a refusal in both cases.
@@ -160,6 +160,31 @@ Two things the server cannot do for you. First, whatever a tool returns is sent 
 - **Pacing is per server process.** Altegio counts requests per IP address. Other programs behind the same address spend the same allowance, so the API can still answer HTTP 429.
 - **Fixed 30-second timeout** per request.
 
+## Live check
+
+Nobody has run this server on a live account yet (see the status at the top). `npm run live-check` is how to do it: it starts the built server the way an MCP host does, bound to your location, and calls every read tool with every argument it has. What it needs to know about the location (a team member, a service, a free day, a slot) it takes from the answers themselves. Each check prints one line, `PASS`, `FAIL` or `SKIP`, and the exit code is 1 when anything failed.
+
+```bash
+npm run live-check          # read tools only; nothing is created
+npm run live-check:write    # the same, then one test booking that is cancelled at once
+```
+
+The script asks for whatever the environment does not give:
+
+| It asks for | Or set | Notes |
+| --- | --- | --- |
+| the partner token | `ALTEGIO_PARTNER_TOKEN` | the input is hidden |
+| the location id | `ALTEGIO_LOCATION_ID` | |
+| the id of a booking form | `ALTEGIO_FORM_ID` | the number in `https://bNNN.alteg.io`; Enter leaves `get_booking_form` out. Read by the script only, not by the server. |
+
+The token reaches the server through its environment, so it is neither in the command nor in the shell history, and the output is cleaned of it. The output holds counts and field names, not the names of your team members and services.
+
+`get_booking` needs a booking made through this integration. Without `--write` it is checked on a made-up id only, which Altegio has to refuse.
+
+**`live-check:write` changes a real schedule** and is never the default. It asks for a phone of your own (hidden), shows the slot it chose, the last free one of the last free day, and waits for `yes`. Then it creates a booking for the client "MCP live check", reads it back, cancels it and checks that it is gone. Altegio may notify the business and message that phone. At a location that confirms phones by SMS it also sends the code and asks for it. If the cancellation fails or cannot be confirmed, the last lines name the booking to delete by hand.
+
+Without npm: `node scripts/live-check.mjs [--write]` after `npm run build`.
+
 ## Development
 
 ```bash
@@ -167,11 +192,13 @@ npm install
 npm run lint          # tsc --noEmit over src/ and tests/
 npm test              # builds dist/ and the tests, then runs them with node:test
 npm run spec:update   # refreshes the OpenAPI snapshot from developer.alteg.io
+npm run live-check    # runs every read tool against the real API (asks for a token)
 ```
 
 - `src/endpoints.ts` is the catalogue of API operations the server calls. `tests/spec.test.ts` compares it with `spec/altegio-api.snapshot.json`, a reduced copy of the official OpenAPI documents (parameters, request schemas and security of those operations only), and checks that every operation is documented with the partner token alone.
 - Every tool test calls the tool through a real MCP client. When a test ends, each request it recorded goes through `assertMatchesSpec`, which checks the path, query parameters, headers and body against that snapshot. The one loose spot is the body of `check_booking`: the document declares its items as a bare object, so the visit is checked through `create_booking`, which sends the same one.
 - `tests/e2e.test.ts` starts the built server as a child process over stdio against a local HTTP mock.
+- `scripts/live-check.mjs` is the [live check](#live-check). `tests/live-check.test.ts` runs it against a local stand-in for the API that keeps a small location, checks every request it causes against the snapshot, and covers the cases in which it has to fail, in which nothing may be created, and in which the token or the phone must not reach the output.
 - To poke at the server by hand: `npx @modelcontextprotocol/inspector node dist/index.js`.
 
 The server uses the official TypeScript SDK ([`@modelcontextprotocol/server`](https://www.npmjs.com/package/@modelcontextprotocol/server)) and `zod`; there are no other runtime dependencies.
